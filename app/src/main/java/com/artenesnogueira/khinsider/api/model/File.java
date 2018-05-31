@@ -1,5 +1,8 @@
 package com.artenesnogueira.khinsider.api.model;
 
+/**
+ * A file that contains an url to be downloaded
+ */
 public class File extends FileInfo {
 
     private final String url;

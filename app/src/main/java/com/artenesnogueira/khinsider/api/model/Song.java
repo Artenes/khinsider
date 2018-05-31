@@ -2,6 +2,9 @@ package com.artenesnogueira.khinsider.api.model;
 
 import java.util.Map;
 
+/**
+ * A song from an album
+ */
 public class Song {
 
     private final String id;

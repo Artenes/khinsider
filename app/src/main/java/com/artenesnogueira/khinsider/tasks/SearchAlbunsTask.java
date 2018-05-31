@@ -2,6 +2,7 @@ package com.artenesnogueira.khinsider.tasks;
 
 import android.os.AsyncTask;
 
+import com.artenesnogueira.khinsider.api.JsoupHtmlDocumentReader;
 import com.artenesnogueira.khinsider.api.KhinsiderRepository;
 import com.artenesnogueira.khinsider.api.model.ResumedAlbum;
 import com.artenesnogueira.khinsider.model.SearchViewState;
@@ -17,7 +18,7 @@ public class SearchAlbunsTask extends AsyncTask<String, Void, SearchViewState> {
     private final WeakReference<View> viewReference;
 
     public SearchAlbunsTask(View view) {
-        this.repository = new KhinsiderRepository();
+        this.repository = new KhinsiderRepository(new JsoupHtmlDocumentReader());
         this.viewReference = new WeakReference<>(view);
     }
 

@@ -2,10 +2,13 @@ package com.artenesnogueira.khinsider.api.model;
 
 import java.util.List;
 
+/**
+ * An album that holds songs
+ */
 public class Album {
 
     private final String name;
-    private final int numberOfFiles;
+    private final String numberOfFiles;
     private final String totalFilesize;
     private final String dateAdded;
     private final String releasedOn;
@@ -13,7 +16,7 @@ public class Album {
     private final List<String> images;
     private final List<Song> songs;
 
-    public Album(String name, int numberOfFiles, String totalFilesize, String dateAdded, String releasedOn, String totalTime, List<String> images, List<Song> songs) {
+    public Album(String name, String numberOfFiles, String totalFilesize, String dateAdded, String releasedOn, String totalTime, List<String> images, List<Song> songs) {
         this.name = name;
         this.numberOfFiles = numberOfFiles;
         this.totalFilesize = totalFilesize;
@@ -28,7 +31,7 @@ public class Album {
         return name;
     }
 
-    public int getNumberOfFiles() {
+    public String getNumberOfFiles() {
         return numberOfFiles;
     }
 

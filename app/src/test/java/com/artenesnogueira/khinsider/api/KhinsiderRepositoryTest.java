@@ -24,7 +24,7 @@ public class KhinsiderRepositoryTest {
 
     @Before
     public void setUp() {
-        repository = new KhinsiderRepository();
+        repository = new KhinsiderRepository(new JsoupHtmlDocumentReader());
     }
 
     @Test
@@ -94,7 +94,7 @@ public class KhinsiderRepositoryTest {
         Album album = repository.getAlbum("harvest-moon-island-of-happiness");
 
         assertEquals("Harvest Moon - Island of Happiness", album.getName());
-        assertEquals(8, album.getNumberOfFiles());
+        assertEquals("8", album.getNumberOfFiles());
         assertEquals("17.14 MB", album.getTotalFilesize());
         assertEquals("Mar 22nd, 2015", album.getDateAdded());
         assertEquals("Nintendo DS", album.getReleasedOn());
@@ -111,7 +111,7 @@ public class KhinsiderRepositoryTest {
         Album album = repository.getAlbum("kaze-no-klonoa-moonlight-museum");
 
         assertEquals("Kaze no Klonoa - Moonlight Museum", album.getName());
-        assertEquals(14, album.getNumberOfFiles());
+        assertEquals("14", album.getNumberOfFiles());
         assertEquals("25.02 MB", album.getTotalFilesize());
         assertEquals("Nov 22nd, 2006", album.getDateAdded());
         assertEquals("N/A", album.getReleasedOn());
@@ -126,7 +126,7 @@ public class KhinsiderRepositoryTest {
         Album album = repository.getAlbum("a-girl-and-a-variant-of-the-circus-you-do-not-laugh-fantasy-left-training-game-seec-inc-android");
 
         assertEquals("A girl and a variant of the circus, you do not laugh [fantasy left training game] (SEEC Inc) (Android)", album.getName());
-        assertEquals(5, album.getNumberOfFiles());
+        assertEquals("5", album.getNumberOfFiles());
         assertEquals("8.21 MB", album.getTotalFilesize());
         assertEquals("Jul 21st, 2017", album.getDateAdded());
         assertEquals("Android", album.getReleasedOn());

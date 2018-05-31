@@ -1,5 +1,8 @@
 package com.artenesnogueira.khinsider.api.model;
 
+/**
+ * Informations about a file. Does not provide url to download file
+ */
 public class FileInfo {
 
     private final Format format;

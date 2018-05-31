@@ -1,5 +1,8 @@
 package com.artenesnogueira.khinsider.api.model;
 
+/**
+ * Title and id of an album, only to display in search results
+ */
 public class ResumedAlbum {
 
     private final String id;
