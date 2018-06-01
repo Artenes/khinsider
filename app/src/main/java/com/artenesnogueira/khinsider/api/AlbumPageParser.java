@@ -54,6 +54,11 @@ class AlbumPageParser {
         //the root div where all the content relies
         Element echoTopic = page.getElementById(KhinsiderContract.DIV_ECHO_TOPIC);
 
+        //if this h2 exists, no album was found
+        if (echoTopic.getElementsByTag("h2").get(0).text().equals(KhinsiderContract.NOT_FOUND_TITLE)) {
+            return null;
+        }
+
         //the data we need for an album
         String name;
         String numberOfFiles;

@@ -122,14 +122,12 @@ public class MainActivity extends AppCompatActivity implements View {
             return;
         }
 
-        List<ResumedAlbum> albums = mCurrentState.getAlbums();
-
-        if (albums != null && albums.size() == 0) {
+        if (mCurrentState.isEmpty()) {
             showNoResults();
             return;
         }
 
-        if (albums != null) {
+        if (mCurrentState.getAlbums() != null) {
             showResults();
             return;
         }

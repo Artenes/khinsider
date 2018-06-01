@@ -37,6 +37,11 @@ public class FilesPageParser {
 
         Element echoTopic = page.getElementById(KhinsiderContract.DIV_ECHO_TOPIC);
 
+        //if this h2 exists, no song was found
+        if (echoTopic.getElementsByTag("h2").get(0).text().equals(KhinsiderContract.NOT_FOUND_TITLE)) {
+            return null;
+        }
+
         Map<Format, File> files = new HashMap<>(0);
 
         //we just assume that inside the echoTopic div, the third paragraph onwards

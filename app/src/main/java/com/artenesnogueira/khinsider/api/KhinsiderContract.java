@@ -20,6 +20,8 @@ final class KhinsiderContract {
     static final String MP3 = "MP3";
     static final String FLAC = "FLAC";
 
+     static final String NOT_FOUND_TITLE = "Ooops!";
+
     private static final String BASE_URL = "https://downloads.khinsider.com";
     private static final String BROWSE_URL = BASE_URL + "/game-soundtracks/browse";
     private static final String SEARCH_URL = BASE_URL + "/search?search=";

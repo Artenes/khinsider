@@ -73,22 +73,6 @@ public class KhinsiderRepositoryTest {
     }
 
     @Test
-    public void searchWithEmptyString() throws IOException {
-
-        List<ResumedAlbum> albums = repository.searchAlbums("");
-        assertEquals(0, albums.size());
-
-    }
-
-    @Test
-    public void searchWithoutResults() throws IOException {
-
-        List<ResumedAlbum> albums = repository.searchAlbums("sldkfnsdlfnlfnsdslkndfkl");
-        assertEquals(0, albums.size());
-
-    }
-
-    @Test
     public void getAlbumThatHasOneImageAndPlatform() throws IOException {
 
         Album album = repository.getAlbum("harvest-moon-island-of-happiness");
@@ -242,5 +226,55 @@ public class KhinsiderRepositoryTest {
         assertEquals("Game Boy Game Boy Advance Nintendo DS", album.getReleasedOn());
 
     }
+
+    @Test
+    public void returnNullIfAlbumIsNotFound() throws IOException {
+
+        Album album;
+
+        album = repository.getAlbum(null);
+        assertNull(album);
+
+        album = repository.getAlbum("");
+        assertNull(album);
+
+        album = repository.getAlbum("lasnflndkan");
+        assertNull(album);
+
+    }
+
+    @Test
+    public void returnNullIfSongIsNotFound() throws IOException {
+
+        Map<Format, File> files;
+
+        files = repository.getFiles(null);
+        assertNull(files);
+
+        files = repository.getFiles("");
+        assertNull(files);
+
+        files = repository.getFiles("alsdnaslns");
+        assertNull(files);
+
+    }
+
+    @Test
+    public void returnNullIfNoResultsWereFoundInSearch() throws IOException {
+
+        List<ResumedAlbum> results;
+
+        results = repository.searchAlbums(null);
+        assertNull(results);
+
+        results = repository.searchAlbums("");
+        assertNull(results);
+
+        results = repository.searchAlbums("alsdnaslns");
+        assertNull(results);
+
+    }
+
+    //TODO change tests to use static HTML documents
 
 }

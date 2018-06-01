@@ -138,11 +138,19 @@ public class KhinsiderRepository {
      */
     private List<ResumedAlbum> parseResumedAlbumsFromList(Document page) throws IndexOutOfBoundsException, NullPointerException {
 
+        Element echoTopic = page.getElementById(KhinsiderContract.DIV_ECHO_TOPIC);
+
+        //if the page has these texts in it, that means that nothing was found
+        if (echoTopic.getElementsByTag("p")
+                .get(0).text().equals("Found 0 matching results.")
+                || echoTopic.getElementsByTag("h2")
+                .get(0).text().equals(KhinsiderContract.NOT_FOUND_TITLE)) {
+            return null;
+        }
+
         List<ResumedAlbum> albums = new ArrayList<>(0);
 
-        Elements paragraphs = page
-                .getElementById(KhinsiderContract.DIV_ECHO_TOPIC)
-                .getElementsByTag("p");
+        Elements paragraphs = echoTopic.getElementsByTag("p");
 
         //we expect that in a list of albums in the html page
         //should exists at least two paragraphs inside the EchoTopic div

@@ -30,6 +30,11 @@ public class SearchAlbunsTask extends AsyncTask<String, Void, SearchViewState> {
         try {
 
             List<ResumedAlbum> albums = repository.searchAlbums(searchQuery);
+
+            if (albums == null) {
+                return SearchViewState.makeEmptyState(searchQuery);
+            }
+
             return SearchViewState.makeShowAlbumsState(searchQuery, albums);
 
         } catch (IOException exception) {
