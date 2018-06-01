@@ -18,8 +18,6 @@ import com.artenesnogueira.khinsider.model.State;
 import com.artenesnogueira.khinsider.model.View;
 import com.artenesnogueira.khinsider.tasks.SearchAlbunsTask;
 
-import java.util.List;
-
 public class MainActivity extends AppCompatActivity implements View {
 
     private SearchViewState mCurrentState;

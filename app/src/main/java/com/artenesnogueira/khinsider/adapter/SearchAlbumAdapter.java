@@ -15,7 +15,7 @@ import java.util.List;
 public class SearchAlbumAdapter extends BaseAdapter {
 
     private List<ResumedAlbum> albums;
-    private Context context;
+    private final Context context;
 
     public SearchAlbumAdapter(Context context) {
         this.context = context;

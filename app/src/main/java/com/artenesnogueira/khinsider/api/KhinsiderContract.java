@@ -11,6 +11,7 @@ final class KhinsiderContract {
     static final String TABLE_SONGLIST = "songlist";
     static final String TABLE_ROW_SONGLIST_FOOTER = "songlist_footer";
     static final String TABLE_ROW_SONGLIST_HEADER = "songlist_header";
+    static final String TABLE_TOP_ALBUMS = "top40";
 
     //Common HTML elements values
     static final String CD = "CD";
@@ -37,6 +38,10 @@ final class KhinsiderContract {
 
     static String getAlbumUrl(String id) {
         return ALBUM_URL + "/" + id;
+    }
+
+    static String appendPath(String path) {
+        return BASE_URL + "/" + path;
     }
 
     private KhinsiderContract() {

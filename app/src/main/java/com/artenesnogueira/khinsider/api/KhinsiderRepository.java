@@ -5,13 +5,11 @@ import com.artenesnogueira.khinsider.api.model.File;
 import com.artenesnogueira.khinsider.api.model.Format;
 import com.artenesnogueira.khinsider.api.model.Letter;
 import com.artenesnogueira.khinsider.api.model.ResumedAlbum;
+import com.artenesnogueira.khinsider.api.model.TopAlbums;
 
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +21,7 @@ import java.util.Map;
  */
 public class KhinsiderRepository {
 
-    private JsoupHtmlDocumentReader htmlDocumentReader;
+    private final JsoupHtmlDocumentReader htmlDocumentReader;
 
     public KhinsiderRepository(JsoupHtmlDocumentReader htmlDocumentReader) {
         this.htmlDocumentReader = htmlDocumentReader;
@@ -36,15 +34,21 @@ public class KhinsiderRepository {
      * @return the list of albums
      * @throws IOException in case of connection or parser error
      */
-    public List<ResumedAlbum> getAlbumsByLetter(Letter letter) throws IOException {
+    public List<ResumedAlbum> getAlbumsByLetter(Letter letter) throws IOException, NullPointerException {
+
+        if (letter == null) {
+            throw new NullPointerException("Letter cannot be null");
+        }
 
         String letterInString = letter == Letter.HASH ? "#" : letter.toString();
 
         Document page = htmlDocumentReader.readFromUrl(KhinsiderContract.getBrowseByLetterUrl(letterInString));
 
+        ResultsPageParser resultsPageParser = new ResultsPageParser(page);
+
         try {
 
-            return parseResumedAlbumsFromList(page);
+            return resultsPageParser.getResults();
 
         } catch (NullPointerException | IndexOutOfBoundsException exception) {
 
@@ -65,9 +69,11 @@ public class KhinsiderRepository {
 
         Document page = htmlDocumentReader.readFromUrl(KhinsiderContract.getSearchUrl(search));
 
+        ResultsPageParser resultsPageParser = new ResultsPageParser(page);
+
         try {
 
-            return parseResumedAlbumsFromList(page);
+            return resultsPageParser.getResults();
 
         } catch (NullPointerException | IndexOutOfBoundsException exception) {
 
@@ -129,56 +135,32 @@ public class KhinsiderRepository {
     }
 
     /**
-     * Gets the album names from a list of albums in a html page
+     * Get the top albums of the given type
      *
-     * @param page the page to scrap
-     * @return the list of found albums
-     * @throws NullPointerException      if a html element is not found
-     * @throws IndexOutOfBoundsException if a html element is no present in a list
+     * @param type the type of the top albums
+     * @return the top albums list
+     * @throws IOException in case of connection or parser error
+     * @throws NullPointerException in case the provided type is null
      */
-    private List<ResumedAlbum> parseResumedAlbumsFromList(Document page) throws IndexOutOfBoundsException, NullPointerException {
+    public List<ResumedAlbum> getTopAlbums(TopAlbums type) throws IOException, NullPointerException {
 
-        Element echoTopic = page.getElementById(KhinsiderContract.DIV_ECHO_TOPIC);
-
-        //if the page has these texts in it, that means that nothing was found
-        if (echoTopic.getElementsByTag("p")
-                .get(0).text().equals("Found 0 matching results.")
-                || echoTopic.getElementsByTag("h2")
-                .get(0).text().equals(KhinsiderContract.NOT_FOUND_TITLE)) {
-            return null;
+        if (type == null) {
+            throw new NullPointerException("Type cannot be null");
         }
 
-        List<ResumedAlbum> albums = new ArrayList<>(0);
+        Document page = htmlDocumentReader.readFromUrl(KhinsiderContract.appendPath(type.toString()));
 
-        Elements paragraphs = echoTopic.getElementsByTag("p");
+        TopAlbumsPageParser topAlbumsPageParser = new TopAlbumsPageParser(page);
 
-        //we expect that in a list of albums in the html page
-        //should exists at least two paragraphs inside the EchoTopic div
-        //the second one would hold the list of albums
-        //if there is less paragraphs than this, just return an empty list
-        //because probably no albums are rendered in the page
-        if (paragraphs.size() < 2) {
-            return albums;
-        }
+        try {
 
-        //this gets the links that point out to the albums
-        //each link has the name of the album and its url
-        Elements albumsLinks = paragraphs.get(1).getElementsByTag("a");
+            return topAlbumsPageParser.getTopAlbums();
 
-        for (Element link : albumsLinks) {
+        } catch (NullPointerException | IndexOutOfBoundsException exception) {
 
-            //we want only the name of the game as the id, not the relative url
-            String[] linkParts = link.attr("href").split("/");
-            //the last part of this url contains the name of the game
-            String id = linkParts[linkParts.length - 1];
-
-            String title = link.text();
-
-            albums.add(new ResumedAlbum(id, title));
+            throw new IOException("Error while parsing results", exception);
 
         }
-
-        return albums;
 
     }
 

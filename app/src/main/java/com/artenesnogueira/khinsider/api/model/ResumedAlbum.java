@@ -7,10 +7,12 @@ public class ResumedAlbum {
 
     private final String id;
     private final String name;
+    private final String cover;
 
-    public ResumedAlbum(String id, String name) {
+    public ResumedAlbum(String id, String name, String cover) {
         this.id = id;
         this.name = name;
+        this.cover = cover;
     }
 
     public String getId() {
@@ -21,4 +23,7 @@ public class ResumedAlbum {
         return name;
     }
 
+    public String getCover() {
+        return cover;
+    }
 }

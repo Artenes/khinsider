@@ -15,7 +15,7 @@ import java.util.List;
 public class SongsAdapter extends BaseAdapter {
 
     private List<Song> songs;
-    private Context context;
+    private final Context context;
 
     public SongsAdapter(Context context) {
         this.context = context;

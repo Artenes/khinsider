@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 /**
  * A parser the fetch the available files to download for a song in a html page
  */
-public class FilesPageParser {
+class FilesPageParser {
 
     private static final String EMPTY = "0.00 MB";
 

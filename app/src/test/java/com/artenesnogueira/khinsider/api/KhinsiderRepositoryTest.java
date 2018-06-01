@@ -6,6 +6,7 @@ import com.artenesnogueira.khinsider.api.model.Format;
 import com.artenesnogueira.khinsider.api.model.Letter;
 import com.artenesnogueira.khinsider.api.model.ResumedAlbum;
 import com.artenesnogueira.khinsider.api.model.Song;
+import com.artenesnogueira.khinsider.api.model.TopAlbums;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +18,7 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class KhinsiderRepositoryTest {
 
@@ -54,6 +56,21 @@ public class KhinsiderRepositoryTest {
 
         assertEquals("10 billion wives (Android Game Music)", tenBillionWives.getName());
         assertEquals("10-billion-wives-android-game-music", tenBillionWives.getId());
+
+    }
+
+    @Test
+    public void throwsExceptionWhenGetAlbumsWithNullLetter() {
+
+        try {
+
+            repository.getAlbumsByLetter(null);
+
+        } catch (Exception exception) {
+
+            assertTrue(exception instanceof NullPointerException);
+
+        }
 
     }
 
@@ -272,6 +289,88 @@ public class KhinsiderRepositoryTest {
 
         results = repository.searchAlbums("alsdnaslns");
         assertNull(results);
+
+    }
+
+    @Test
+    public void getTop40Albums() throws IOException, NullPointerException {
+
+        List<ResumedAlbum> results = repository.getTopAlbums(TopAlbums.TOP_40);
+
+        assertEquals(40, results.size());
+
+        ResumedAlbum persona5 = results.get(0);
+
+        assertEquals("persona-5", persona5.getId());
+        assertEquals("Persona 5", persona5.getName());
+        assertEquals("http://66.90.93.122/ost/persona-5/thumbs_small/Cover.jpg", persona5.getCover());
+
+        //this one does not have a cover image
+        ResumedAlbum donkeyKongCountry = results.get(20);
+
+        assertEquals("donkey-kong-country-returns-original-sound-version", donkeyKongCountry.getId());
+        assertEquals("Donkey Kong Country Returns - Original Sound Version", donkeyKongCountry.getName());
+        assertNull(donkeyKongCountry.getCover());
+
+    }
+
+    @Test
+    public void getTop100AllTimeAlbums() throws IOException, NullPointerException {
+
+        List<ResumedAlbum> results = repository.getTopAlbums(TopAlbums.ALL_TIME);
+
+        assertEquals(100, results.size());
+
+        ResumedAlbum needForSpeed = results.get(0);
+
+        assertEquals("need-for-speed-most-wanted", needForSpeed.getId());
+        assertEquals("Need for Speed Most Wanted", needForSpeed.getName());
+        assertEquals("http://66.90.93.122/ost/need-for-speed-most-wanted/thumbs_small/3407-okdgpilojw.jpg", needForSpeed.getCover());
+
+    }
+
+    @Test
+    public void getTop100Last6MonthsAlbums() throws IOException, NullPointerException {
+
+        List<ResumedAlbum> results = repository.getTopAlbums(TopAlbums.LAST_SIX_MOTHS);
+
+        assertEquals(100, results.size());
+
+        ResumedAlbum persona5 = results.get(0);
+
+        assertEquals("persona-5", persona5.getId());
+        assertEquals("Persona 5", persona5.getName());
+        assertEquals("http://66.90.93.122/ost/persona-5/thumbs_small/Cover.jpg", persona5.getCover());
+
+    }
+
+    @Test
+    public void getTop100NewlyAddedAlbums() throws IOException, NullPointerException {
+
+        List<ResumedAlbum> results = repository.getTopAlbums(TopAlbums.NEWLY_ADDED);
+
+        assertEquals(100, results.size());
+
+        ResumedAlbum legendOfZelda = results.get(0);
+
+        assertEquals("the-legend-of-zelda-breath-of-the-wild", legendOfZelda.getId());
+        assertEquals("Legend of Zelda, The - Breath of the Wild", legendOfZelda.getName());
+        assertEquals("http://66.90.93.122/ost/the-legend-of-zelda-breath-of-the-wild/thumbs_small/index.jpg", legendOfZelda.getCover());
+
+    }
+
+    @Test
+    public void throwsExceptionWhenGetTopAlbumsWithNullType() {
+
+        try {
+
+            repository.getTopAlbums(null);
+
+        } catch (Exception exception) {
+
+            assertTrue(exception instanceof NullPointerException);
+
+        }
 
     }
 
