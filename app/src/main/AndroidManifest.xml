@@ -21,9 +21,12 @@
         </activity>
 
         <activity android:name=".view.SearchActivity" />
+
         <activity
             android:name=".view.AlbumActivity"
-            android:parentActivityName=".view.AlbumActivity" />
+            android:parentActivityName=".view.AlbumActivity"
+            android:theme="@style/AppTheme.NoActionBar"/>
+
     </application>
 
 </manifest>
