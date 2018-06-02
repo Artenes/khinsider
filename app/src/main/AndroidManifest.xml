@@ -13,12 +13,6 @@
         android:theme="@style/AppTheme">
 
         <activity android:name=".view.MainActivity">
-
-        </activity>
-
-        <activity android:name=".view.AlbumActivity" android:parentActivityName=".view.AlbumActivity"/>
-
-        <activity android:name=".view.TopAlbumsActivity" android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -26,6 +20,10 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".view.SearchActivity" />
+        <activity
+            android:name=".view.AlbumActivity"
+            android:parentActivityName=".view.AlbumActivity" />
     </application>
 
 </manifest>

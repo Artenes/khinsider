@@ -2,12 +2,15 @@ package com.artenesnogueira.khinsider.view;
 
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.artenesnogueira.khinsider.R;
@@ -16,17 +19,17 @@ import com.artenesnogueira.khinsider.api.model.ResumedAlbum;
 import com.artenesnogueira.khinsider.api.model.TopAlbums;
 import com.artenesnogueira.khinsider.model.State;
 import com.artenesnogueira.khinsider.model.TopAlbumsViewState;
-import com.artenesnogueira.khinsider.model.View;
 import com.artenesnogueira.khinsider.viewmodel.TopAlbumsViewModel;
 
 import java.util.List;
 
 /**
- * Activity to display a top albums list
+ * Fragment used to display a list of top albums
  */
-public class TopAlbumsActivity extends AppCompatActivity implements View, TopAlbumsAdapter.OnAlbumClickListener {
+public class TopAlbumFragment extends Fragment
+        implements TopAlbumsAdapter.OnAlbumClickListener, com.artenesnogueira.khinsider.model.View {
 
-    public static final String EXTRA_TYPE_TOP = "TYPE_TOP";
+    public static final String KEY_TYPE_TOP = "TYPE_TOP";
 
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -34,16 +37,32 @@ public class TopAlbumsActivity extends AppCompatActivity implements View, TopAlb
     private LinearLayout mErrorView;
     private LinearLayout mLoadingView;
 
+    public static Fragment make(TopAlbums type) {
+        Bundle args = new Bundle();
+        args.putSerializable(KEY_TYPE_TOP, type);
+        Fragment fragment = new TopAlbumFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Nullable
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_top_albums);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_top_albums, container, false);
 
-        mRecyclerView = findViewById(R.id.rv_albums);
-        mErrorView = findViewById(R.id.error_view);
-        mLoadingView = findViewById(R.id.loading_view);
+        mRecyclerView = view.findViewById(R.id.rv_albums);
+        mErrorView = view.findViewById(R.id.error_view);
+        mLoadingView = view.findViewById(R.id.loading_view);
 
-        mLayoutManager = new LinearLayoutManager(this);
+        return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        mLayoutManager = new LinearLayoutManager(getActivity());
         mAdapter = new TopAlbumsAdapter(this);
 
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -52,18 +71,18 @@ public class TopAlbumsActivity extends AppCompatActivity implements View, TopAlb
 
         TopAlbums type = TopAlbums.TOP_40;
 
-        Intent intent = getIntent();
-        if (intent != null && intent.hasExtra(EXTRA_TYPE_TOP)) {
-            type = (TopAlbums) intent.getSerializableExtra(EXTRA_TYPE_TOP);
+        Bundle bundle = getArguments();
+        if (bundle != null && bundle.containsKey(KEY_TYPE_TOP)) {
+            type = (TopAlbums) bundle.getSerializable(KEY_TYPE_TOP);
         }
 
         ViewModelProviders.of(this).get(TopAlbumsViewModel.class).getCurrentState(type)
                 .observe(this, new Observer<TopAlbumsViewState>() {
-            @Override
-            public void onChanged(@Nullable TopAlbumsViewState topAlbumsViewState) {
-                render(topAlbumsViewState);
-            }
-        });
+                    @Override
+                    public void onChanged(@Nullable TopAlbumsViewState topAlbumsViewState) {
+                        render(topAlbumsViewState);
+                    }
+                });
 
     }
 
@@ -113,7 +132,7 @@ public class TopAlbumsActivity extends AppCompatActivity implements View, TopAlb
     @Override
     public void onAlbumClick(ResumedAlbum album) {
 
-        AlbumActivity.start(this, album.getId());
+        AlbumActivity.start(getActivity(), album.getId());
 
     }
 
