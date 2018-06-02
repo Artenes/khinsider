@@ -79,6 +79,9 @@ public class AlbumActivity extends AppCompatActivity implements View {
 
         render(AlbumViewState.makeLoadingState(id));
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("");;
+
     }
 
     public void showLoading() {
@@ -106,6 +109,7 @@ public class AlbumActivity extends AppCompatActivity implements View {
         mDateAddedTextView.setText(album.getDateAdded());
         mPlatformsTextView.setText(album.getReleasedOn());
         mAdapter.swapData(album.getSongs());
+        getSupportActionBar().setTitle(album.getName());
     }
 
     @Override
