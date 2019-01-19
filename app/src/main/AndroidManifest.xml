@@ -24,6 +24,9 @@
         <activity
             android:name=".view.AlbumActivity"
             android:parentActivityName=".view.AlbumActivity" />
+
+        <service android:name=".player.MusicPlayerService" android:exported="false"/>
+
     </application>
 
 </manifest>

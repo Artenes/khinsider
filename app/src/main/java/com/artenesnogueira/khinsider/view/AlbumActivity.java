@@ -1,10 +1,14 @@
 package com.artenesnogueira.khinsider.view;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -15,6 +19,7 @@ import com.artenesnogueira.khinsider.api.model.Album;
 import com.artenesnogueira.khinsider.model.AlbumViewState;
 import com.artenesnogueira.khinsider.model.State;
 import com.artenesnogueira.khinsider.model.View;
+import com.artenesnogueira.khinsider.player.MusicPlayerService;
 import com.artenesnogueira.khinsider.tasks.LoadAlbumTask;
 
 public class AlbumActivity extends AppCompatActivity implements View {
@@ -41,6 +46,8 @@ public class AlbumActivity extends AppCompatActivity implements View {
     private SongsAdapter mAdapter;
 
     private AlbumViewState mCurrentState;
+
+    private MusicPlayerService mPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,12 +83,15 @@ public class AlbumActivity extends AppCompatActivity implements View {
 
         mAdapter = new SongsAdapter(this);
         mListView.setAdapter(mAdapter);
+        mListView.setOnItemClickListener(mPlayOrPauseMusic);
 
         render(AlbumViewState.makeLoadingState(id));
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("");;
+        getSupportActionBar().setTitle("");
 
+        Intent serviceIntent = new Intent(this, MusicPlayerService.class);
+        bindService(serviceIntent, mBindServiceListener, Context.BIND_AUTO_CREATE);
     }
 
     public void showLoading() {
@@ -136,5 +146,43 @@ public class AlbumActivity extends AppCompatActivity implements View {
         showError();
 
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(mBindServiceListener);
+    }
+
+    private ServiceConnection mBindServiceListener = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mPlayer = ((MusicPlayerService.MusicPlayerBinder)service).getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
+
+    private AdapterView.OnItemClickListener mPlayOrPauseMusic = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, android.view.View view, int position, long id) {
+
+            String mp3Url = "http://66.90.93.122/ost/a-girl-and-a-variant-of-the-circus-you-do-not-laugh-fantasy-left-training-game-seec-inc-android/lfrcnkmk/bgm_home.mp3";
+
+            if(!mPlayer.hasMusicStarted()) {
+                mPlayer.startMusic(mp3Url);
+                return;
+            }
+
+            if (mPlayer.isPlaying()) {
+                mPlayer.pause();
+            } else {
+                mPlayer.play();
+            }
+
+        }
+    };
 
 }
