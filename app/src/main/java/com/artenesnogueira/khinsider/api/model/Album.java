@@ -59,4 +59,11 @@ public class Album {
         return songs;
     }
 
+    public String getCover() {
+        if (images == null || images.isEmpty()) {
+            return "";
+        }
+        return images.get(0);
+    }
+
 }

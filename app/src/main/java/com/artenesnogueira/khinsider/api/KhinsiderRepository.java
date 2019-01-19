@@ -5,6 +5,7 @@ import com.artenesnogueira.khinsider.api.model.File;
 import com.artenesnogueira.khinsider.api.model.Format;
 import com.artenesnogueira.khinsider.api.model.Letter;
 import com.artenesnogueira.khinsider.api.model.ResumedAlbum;
+import com.artenesnogueira.khinsider.api.model.Song;
 import com.artenesnogueira.khinsider.api.model.TopAlbums;
 
 import org.jsoup.nodes.Document;
@@ -99,6 +100,30 @@ public class KhinsiderRepository {
         try {
 
             return albumPageParser.getAlbum();
+
+        } catch (NullPointerException | IndexOutOfBoundsException exception) {
+
+            throw new IOException("Error while parsing results", exception);
+
+        }
+
+    }
+
+    public Album getAlbumWithDownloadLinks(String id) throws IOException {
+
+        SongDownloadPageParser parser = new SongDownloadPageParser();
+
+        try {
+
+            Album album = getAlbum(id);
+
+            for (Song song : album.getSongs()) {
+                Document songPage = htmlDocumentReader.readFromUrl(KhinsiderContract.getSongUrl(song));
+                String mp3UrlDownload = parser.getMp3Link(songPage);
+                song.getFiles().get(Format.MP3).setUrl(mp3UrlDownload);
+            }
+
+            return album;
 
         } catch (NullPointerException | IndexOutOfBoundsException exception) {
 
