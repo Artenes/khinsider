@@ -199,8 +199,6 @@ public class AlbumActivity extends AppCompatActivity implements View, SongsAdapt
                     mRepo.setMp3UrlOnSong(mSong);
                 }
 
-                mPlayer.startMusic(mSong);
-
             } catch (IOException exception) {
 
                 exception.printStackTrace();
@@ -212,6 +210,8 @@ public class AlbumActivity extends AppCompatActivity implements View, SongsAdapt
 
         @Override
         protected void onPostExecute(Void aVoid) {
+
+            mPlayer.startMusic(mSong);
 
             mAdapter.setCurrentSong(mSong);
 
