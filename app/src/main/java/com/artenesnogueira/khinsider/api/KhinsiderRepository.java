@@ -133,6 +133,13 @@ public class KhinsiderRepository {
 
     }
 
+    public void setMp3UrlOnSong(Song song) throws IOException {
+        SongDownloadPageParser parser = new SongDownloadPageParser();
+        Document songPage = htmlDocumentReader.readFromUrl(KhinsiderContract.getSongUrl(song));
+        String mp3UrlDownload = parser.getMp3Link(songPage);
+        song.getFiles().get(Format.MP3).setUrl(mp3UrlDownload);
+    }
+
     /**
      * Get the available files to download for a song
      *

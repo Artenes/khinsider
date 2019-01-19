@@ -23,7 +23,7 @@
         <activity android:name=".view.SearchActivity" />
         <activity
             android:name=".view.AlbumActivity"
-            android:parentActivityName=".view.AlbumActivity" />
+            android:parentActivityName=".view.AlbumActivity" android:screenOrientation="portrait" />
 
         <service android:name=".player.MusicPlayerService" android:exported="false"/>
 

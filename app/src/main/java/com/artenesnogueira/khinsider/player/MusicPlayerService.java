@@ -20,8 +20,9 @@ public class MusicPlayerService extends Service {
     private final IBinder mBinder = new MusicPlayerBinder();
     private SimpleExoPlayer mPlayer;
 
-    boolean hasStarted = false;
-    boolean isPlaying = false;
+    private boolean mHasStarted = false;
+    private boolean mIsPlaying = false;
+    private String mCurrentSongUrl = "";
 
     @Nullable
     @Override
@@ -33,34 +34,49 @@ public class MusicPlayerService extends Service {
     public void onCreate() {
         super.onCreate();
         mPlayer = ExoPlayerFactory.newSimpleInstance(this);
-        mPlayer.setPlayWhenReady(true);
-        mPlayer.seekTo(0, 0);
     }
 
     public void startMusic(String url) {
+
+        if (mCurrentSongUrl.equals(url)) {
+            playOrPause();
+            return;
+        }
+
         Uri uri = Uri.parse(url);
         MediaSource mediaSource = new ExtractorMediaSource.Factory(new DefaultHttpDataSourceFactory(USER_AGENT)).createMediaSource(uri);
         mPlayer.prepare(mediaSource, true, false);
-        hasStarted = true;
-        isPlaying = true;
+        mHasStarted = true;
+        mIsPlaying = true;
+        mCurrentSongUrl = url;
+        play();
+        mPlayer.seekTo(0, 0);
     }
 
     public boolean hasMusicStarted() {
-        return hasStarted;
+        return mHasStarted;
     }
 
     public boolean isPlaying() {
-        return isPlaying;
+        return mIsPlaying;
+    }
+
+    public void playOrPause() {
+        if (mIsPlaying) {
+            pause();
+        } else {
+            play();
+        }
     }
 
     public void play() {
         mPlayer.setPlayWhenReady(true);
-        isPlaying = true;
+        mIsPlaying = true;
     }
 
     public void pause() {
         mPlayer.setPlayWhenReady(false);
-        isPlaying = false;
+        mIsPlaying = false;
     }
 
     @Override

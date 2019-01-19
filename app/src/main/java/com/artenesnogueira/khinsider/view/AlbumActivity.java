@@ -1,9 +1,11 @@
 package com.artenesnogueira.khinsider.view;
 
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.constraint.ConstraintLayout;
@@ -15,12 +17,19 @@ import android.widget.TextView;
 
 import com.artenesnogueira.khinsider.R;
 import com.artenesnogueira.khinsider.adapter.SongsAdapter;
+import com.artenesnogueira.khinsider.api.JsoupHtmlDocumentReader;
+import com.artenesnogueira.khinsider.api.KhinsiderRepository;
 import com.artenesnogueira.khinsider.api.model.Album;
+import com.artenesnogueira.khinsider.api.model.Format;
+import com.artenesnogueira.khinsider.api.model.Song;
 import com.artenesnogueira.khinsider.model.AlbumViewState;
 import com.artenesnogueira.khinsider.model.State;
 import com.artenesnogueira.khinsider.model.View;
 import com.artenesnogueira.khinsider.player.MusicPlayerService;
 import com.artenesnogueira.khinsider.tasks.LoadAlbumTask;
+
+import java.io.IOException;
+import java.util.concurrent.Executors;
 
 public class AlbumActivity extends AppCompatActivity implements View {
 
@@ -48,6 +57,8 @@ public class AlbumActivity extends AppCompatActivity implements View {
     private AlbumViewState mCurrentState;
 
     private MusicPlayerService mPlayer;
+
+    private KhinsiderRepository mRepo = new KhinsiderRepository(new JsoupHtmlDocumentReader());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -169,20 +180,50 @@ public class AlbumActivity extends AppCompatActivity implements View {
         @Override
         public void onItemClick(AdapterView<?> parent, android.view.View view, int position, long id) {
 
-            String mp3Url = "http://66.90.93.122/ost/a-girl-and-a-variant-of-the-circus-you-do-not-laugh-fantasy-left-training-game-seec-inc-android/lfrcnkmk/bgm_home.mp3";
-
-            if(!mPlayer.hasMusicStarted()) {
-                mPlayer.startMusic(mp3Url);
-                return;
-            }
-
-            if (mPlayer.isPlaying()) {
-                mPlayer.pause();
-            } else {
-                mPlayer.play();
-            }
+            Song song = (Song) mAdapter.getItem(position);
+            new PlayMusicTask(song, mRepo, mPlayer).execute();
 
         }
     };
+
+    private static class PlayMusicTask extends AsyncTask<Void, Void, Void> {
+
+        private Song mSong;
+
+        private KhinsiderRepository mRepo;
+
+        @SuppressLint("StaticFieldLeak")
+        private MusicPlayerService mService;
+
+        PlayMusicTask(Song song, KhinsiderRepository repository, MusicPlayerService service) {
+            mSong = song;
+            mRepo = repository;
+            mService = service;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            try {
+
+                String mp3Url = mSong.getFiles().get(Format.MP3).getUrl();
+
+                if (mp3Url == null || mp3Url.isEmpty()) {
+                    mRepo.setMp3UrlOnSong(mSong);
+                    mp3Url = mSong.getFiles().get(Format.MP3).getUrl();
+                }
+
+                mService.startMusic(mp3Url);
+
+            } catch (IOException exception) {
+
+                exception.printStackTrace();
+
+            }
+
+            return null;
+        }
+
+    }
 
 }
