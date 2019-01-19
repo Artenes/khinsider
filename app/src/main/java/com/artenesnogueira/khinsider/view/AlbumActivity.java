@@ -10,9 +10,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.AdapterView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.artenesnogueira.khinsider.R;
@@ -29,9 +29,8 @@ import com.artenesnogueira.khinsider.player.MusicPlayerService;
 import com.artenesnogueira.khinsider.tasks.LoadAlbumTask;
 
 import java.io.IOException;
-import java.util.concurrent.Executors;
 
-public class AlbumActivity extends AppCompatActivity implements View {
+public class AlbumActivity extends AppCompatActivity implements View, SongsAdapter.SongClickListener {
 
     private static final String ALBUM_ID_KEY = "album_id";
 
@@ -46,7 +45,7 @@ public class AlbumActivity extends AppCompatActivity implements View {
     private TextView mTotalFileSizeTextView;
     private TextView mDateAddedTextView;
     private TextView mPlatformsTextView;
-    private ListView mListView;
+    private RecyclerView mSongsList;
 
     private LinearLayout mErrorView;
     private LinearLayout mLoadingView;
@@ -86,15 +85,15 @@ public class AlbumActivity extends AppCompatActivity implements View {
         mTotalFileSizeTextView = findViewById(R.id.tv_filesize);
         mDateAddedTextView = findViewById(R.id.tv_date_added);
         mPlatformsTextView = findViewById(R.id.tv_platforms);
-        mListView = findViewById(R.id.list_view);
+        mSongsList = findViewById(R.id.list_view);
 
         mErrorView = findViewById(R.id.error_view);
         mLoadingView = findViewById(R.id.loading_view);
         mContentView = findViewById(R.id.content_view);
 
         mAdapter = new SongsAdapter(this);
-        mListView.setAdapter(mAdapter);
-        mListView.setOnItemClickListener(mPlayOrPauseMusic);
+        mSongsList.setLayoutManager(new LinearLayoutManager(this));
+        mSongsList.setAdapter(mAdapter);
 
         render(AlbumViewState.makeLoadingState(id));
 
@@ -167,7 +166,7 @@ public class AlbumActivity extends AppCompatActivity implements View {
     private ServiceConnection mBindServiceListener = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            mPlayer = ((MusicPlayerService.MusicPlayerBinder)service).getService();
+            mPlayer = ((MusicPlayerService.MusicPlayerBinder) service).getService();
         }
 
         @Override
@@ -176,29 +175,16 @@ public class AlbumActivity extends AppCompatActivity implements View {
         }
     };
 
-    private AdapterView.OnItemClickListener mPlayOrPauseMusic = new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> parent, android.view.View view, int position, long id) {
+    @SuppressLint("StaticFieldLeak")
+    private class PlayMusicTask extends AsyncTask<Void, Void, Void> {
 
-            Song song = (Song) mAdapter.getItem(position);
-            new PlayMusicTask(song, mRepo, mPlayer).execute();
-
-        }
-    };
-
-    private static class PlayMusicTask extends AsyncTask<Void, Void, Void> {
+        private int mPosition;
 
         private Song mSong;
 
-        private KhinsiderRepository mRepo;
-
-        @SuppressLint("StaticFieldLeak")
-        private MusicPlayerService mService;
-
-        PlayMusicTask(Song song, KhinsiderRepository repository, MusicPlayerService service) {
+        PlayMusicTask(int position, Song song) {
             mSong = song;
-            mRepo = repository;
-            mService = service;
+            mPosition = position;
         }
 
         @Override
@@ -210,10 +196,9 @@ public class AlbumActivity extends AppCompatActivity implements View {
 
                 if (mp3Url == null || mp3Url.isEmpty()) {
                     mRepo.setMp3UrlOnSong(mSong);
-                    mp3Url = mSong.getFiles().get(Format.MP3).getUrl();
                 }
 
-                mService.startMusic(mp3Url);
+                mPlayer.startMusic(mSong);
 
             } catch (IOException exception) {
 
@@ -223,6 +208,20 @@ public class AlbumActivity extends AppCompatActivity implements View {
 
             return null;
         }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+
+            mAdapter.setCurrentSong(mSong);
+
+        }
+
+    }
+
+    @Override
+    public void onSongClicked(int position, Song song) {
+
+        new PlayMusicTask(position, song).execute();
 
     }
 

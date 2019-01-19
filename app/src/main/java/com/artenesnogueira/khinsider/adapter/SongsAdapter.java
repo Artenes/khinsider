@@ -1,24 +1,28 @@
 package com.artenesnogueira.khinsider.adapter;
 
-import android.content.Context;
+import android.graphics.Color;
+import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.artenesnogueira.khinsider.R;
 import com.artenesnogueira.khinsider.api.model.Song;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class SongsAdapter extends BaseAdapter {
+public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.SongViewHolder> {
 
-    private List<Song> songs;
-    private final Context context;
+    private List<Song> songs = new ArrayList<>(0);
+    private final SongClickListener mSongListener;
+    private Song mCurrentSong;
 
-    public SongsAdapter(Context context) {
-        this.context = context;
+    public SongsAdapter(SongClickListener songListener) {
+        mSongListener = songListener;
     }
 
     public void swapData(List<Song> albums) {
@@ -26,34 +30,74 @@ public class SongsAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
+    public void setCurrentSong(Song song) {
+        if (mCurrentSong != null && mCurrentSong != song) {
+            int prevPosition = songs.indexOf(mCurrentSong);
+            notifyItemChanged(prevPosition);
+        }
+        int position = songs.indexOf(song);
+        notifyItemChanged(position);
+        mCurrentSong = song;
+    }
+
+    @NonNull
     @Override
-    public int getCount() {
-        return songs == null ? 0 : songs.size();
+    public SongViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.song_list_item, parent, false);
+        return new SongViewHolder(view);
     }
 
     @Override
-    public Object getItem(int position) {
-        return songs == null ? null : songs.get(position);
+    public void onBindViewHolder(@NonNull SongViewHolder holder, int position) {
+        Song song = songs.get(position);
+        holder.bind(song);
     }
 
     @Override
-    public long getItemId(int position) {
-        return position;
+    public int getItemCount() {
+        return songs.size();
     }
 
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public class SongViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        View row = convertView;
+        private final TextView name;
+        private final TextView time;
+        private final ImageView playOrPause;
 
-        if (row == null) {
-            row = LayoutInflater.from(context).inflate(R.layout.song_list_item, parent, false);
+        public SongViewHolder(View itemView) {
+            super(itemView);
+            name = itemView.findViewById(R.id.tv_name);
+            time = itemView.findViewById(R.id.tv_time);
+            playOrPause = itemView.findViewById(R.id.iv_play_or_pause);
         }
 
-        ((TextView) row.findViewById(R.id.tv_name)).setText(songs.get(position).getName());
-        ((TextView) row.findViewById(R.id.tv_time)).setText(songs.get(position).getTime());
+        public void bind(Song song) {
+            name.setText(song.getName());
+            time.setText(song.getTime());
 
-        return row;
+            if (song.isPlaying()) {
+                playOrPause.setImageResource(android.R.drawable.ic_media_pause);
+                itemView.setBackgroundColor(itemView.getContext().getColor(R.color.colorPrimaryDark));
+            } else {
+                playOrPause.setImageResource(android.R.drawable.ic_media_play);
+                itemView.setBackgroundColor(Color.TRANSPARENT);
+            }
+
+            name.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            int position = getAdapterPosition();
+            Song song = songs.get(position);
+            mSongListener.onSongClicked(position, song);
+        }
+
+    }
+
+    public interface SongClickListener {
+
+        void onSongClicked(int position, Song song);
 
     }
 

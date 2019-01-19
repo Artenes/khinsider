@@ -7,6 +7,8 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 
+import com.artenesnogueira.khinsider.api.model.Format;
+import com.artenesnogueira.khinsider.api.model.Song;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
@@ -22,7 +24,7 @@ public class MusicPlayerService extends Service {
 
     private boolean mHasStarted = false;
     private boolean mIsPlaying = false;
-    private String mCurrentSongUrl = "";
+    private Song mCurrentSong = null;
 
     @Nullable
     @Override
@@ -36,21 +38,29 @@ public class MusicPlayerService extends Service {
         mPlayer = ExoPlayerFactory.newSimpleInstance(this);
     }
 
-    public void startMusic(String url) {
+    public void startMusic(Song song) {
 
-        if (mCurrentSongUrl.equals(url)) {
+        if (mCurrentSong == song) {
             playOrPause();
             return;
         }
 
-        Uri uri = Uri.parse(url);
+        if (mCurrentSong != null) {
+            mCurrentSong.setPlaying(false);
+        }
+
+        Uri uri = Uri.parse(song.getFiles().get(Format.MP3).getUrl());
         MediaSource mediaSource = new ExtractorMediaSource.Factory(new DefaultHttpDataSourceFactory(USER_AGENT)).createMediaSource(uri);
         mPlayer.prepare(mediaSource, true, false);
         mHasStarted = true;
         mIsPlaying = true;
-        mCurrentSongUrl = url;
+        mCurrentSong = song;
         play();
         mPlayer.seekTo(0, 0);
+    }
+
+    public boolean isPlaying(Song song) {
+        return mCurrentSong == song;
     }
 
     public boolean hasMusicStarted() {
@@ -72,11 +82,13 @@ public class MusicPlayerService extends Service {
     public void play() {
         mPlayer.setPlayWhenReady(true);
         mIsPlaying = true;
+        mCurrentSong.setPlaying(true);
     }
 
     public void pause() {
         mPlayer.setPlayWhenReady(false);
         mIsPlaying = false;
+        mCurrentSong.setPlaying(false);
     }
 
     @Override

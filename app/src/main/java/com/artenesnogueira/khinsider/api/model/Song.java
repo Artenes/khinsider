@@ -13,6 +13,7 @@ public class Song {
     private final String name;
     private final String time;
     private final Map<Format, FileInfo> files;
+    private boolean isPlaying = false;
 
     public Song(String id, String cd, String track, String name, String time, Map<Format, FileInfo> files) {
         this.id = id;
@@ -45,6 +46,14 @@ public class Song {
 
     public String getTime() {
         return time;
+    }
+
+    public void setPlaying(boolean playing) {
+        isPlaying = playing;
+    }
+
+    public boolean isPlaying() {
+        return isPlaying;
     }
 
 }

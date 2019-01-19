@@ -118,7 +118,7 @@
             app:layout_constraintStart_toStartOf="@+id/tv_date_added"
             app:layout_constraintTop_toBottomOf="@+id/tv_date_added" />
 
-        <ListView
+        <android.support.v7.widget.RecyclerView
             android:id="@+id/list_view"
             android:layout_width="0dp"
             android:layout_height="0dp"
@@ -130,6 +130,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView4" />
+
     </android.support.constraint.ConstraintLayout>
 
     <LinearLayout
