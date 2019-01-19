@@ -26,6 +26,7 @@ import com.artenesnogueira.khinsider.model.AlbumViewState;
 import com.artenesnogueira.khinsider.model.State;
 import com.artenesnogueira.khinsider.model.View;
 import com.artenesnogueira.khinsider.player.MusicPlayerService;
+import com.artenesnogueira.khinsider.tasks.DownloadSongTask;
 import com.artenesnogueira.khinsider.tasks.LoadAlbumTask;
 
 import java.io.IOException;
@@ -222,6 +223,13 @@ public class AlbumActivity extends AppCompatActivity implements View, SongsAdapt
     public void onSongClicked(int position, Song song) {
 
         new PlayMusicTask(position, song).execute();
+
+    }
+
+    @Override
+    public void onSongLongClicked(int position, Song song) {
+
+        new DownloadSongTask(this, song).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
     }
 

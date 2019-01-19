@@ -58,7 +58,7 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.SongViewHold
         return songs.size();
     }
 
-    public class SongViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class SongViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
         private final TextView name;
         private final TextView time;
@@ -84,6 +84,7 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.SongViewHold
             }
 
             name.setOnClickListener(this);
+            name.setOnLongClickListener(this);
         }
 
         @Override
@@ -93,11 +94,21 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapter.SongViewHold
             mSongListener.onSongClicked(position, song);
         }
 
+        @Override
+        public boolean onLongClick(View v) {
+            int position = getAdapterPosition();
+            Song song = songs.get(position);
+            mSongListener.onSongLongClicked(position, song);
+            return true;
+        }
+
     }
 
     public interface SongClickListener {
 
         void onSongClicked(int position, Song song);
+
+        void onSongLongClicked(int position, Song song);
 
     }
 
