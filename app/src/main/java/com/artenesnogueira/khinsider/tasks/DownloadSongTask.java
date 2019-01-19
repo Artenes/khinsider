@@ -10,6 +10,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
 import com.artenesnogueira.khinsider.R;
+import com.artenesnogueira.khinsider.api.model.File;
 import com.artenesnogueira.khinsider.api.model.Format;
 import com.artenesnogueira.khinsider.api.model.Song;
 
@@ -64,7 +65,13 @@ public class DownloadSongTask extends AsyncTask<Void, Void, Void> {
 
             InputStream input = new BufferedInputStream(url.openStream(), 8129);
 
-            OutputStream output = new FileOutputStream(Environment.getExternalStorageDirectory().toString() + "/" + mSong.getName() + ".mp3");
+            String path = Environment.getExternalStorageDirectory().toString() + "/khinsider/";
+
+            java.io.File file = new java.io.File(path);
+
+            file.mkdirs();
+
+            OutputStream output = new FileOutputStream(path + mSong.getName() + ".mp3");
 
             byte data[] = new byte[1024];
 
