@@ -1,5 +1,7 @@
 package com.artenesnogueira.khinsider.api;
 
+import com.artenesnogueira.khinsider.api.model.Song;
+
 /**
  * Class with constants and utility methods to deal
  * with Khinsider website content and urls
@@ -42,6 +44,10 @@ final class KhinsiderContract {
 
     static String appendPath(String path) {
         return BASE_URL + "/" + path;
+    }
+
+    static String getSongUrl(Song song) {
+        return ALBUM_URL + "/" + song.getId();
     }
 
     private KhinsiderContract() {

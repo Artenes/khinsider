@@ -5,8 +5,9 @@ package com.artenesnogueira.khinsider.api.model;
  */
 public class FileInfo {
 
-    private final Format format;
-    private final String size;
+    private Format format;
+    private String size;
+    private String url;
 
     public FileInfo(Format format, String size) {
         this.format = format;
@@ -19,6 +20,14 @@ public class FileInfo {
 
     public String getSize() {
         return size;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
 }

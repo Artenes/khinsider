@@ -1,34 +1,37 @@
 package com.artenesnogueira.khinsider.view;
 
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
+import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.CoordinatorLayout;
+import android.os.IBinder;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.artenesnogueira.khinsider.R;
 import com.artenesnogueira.khinsider.adapter.SongsAdapter;
+import com.artenesnogueira.khinsider.api.JsoupHtmlDocumentReader;
+import com.artenesnogueira.khinsider.api.KhinsiderRepository;
 import com.artenesnogueira.khinsider.api.model.Album;
+import com.artenesnogueira.khinsider.api.model.Format;
 import com.artenesnogueira.khinsider.api.model.Song;
 import com.artenesnogueira.khinsider.model.AlbumViewState;
 import com.artenesnogueira.khinsider.model.State;
 import com.artenesnogueira.khinsider.model.View;
-import com.artenesnogueira.khinsider.viewmodel.AlbumViewModel;
-import com.squareup.picasso.Picasso;
+import com.artenesnogueira.khinsider.player.MusicPlayerService;
+import com.artenesnogueira.khinsider.tasks.DownloadSongTask;
+import com.artenesnogueira.khinsider.tasks.LoadAlbumTask;
 
-/**
- * Activity to display an album
- */
-public class AlbumActivity extends AppCompatActivity implements View, SongsAdapter.OnSongClickListener {
+import java.io.IOException;
+
+public class AlbumActivity extends AppCompatActivity implements View, SongsAdapter.SongClickListener {
 
     private static final String ALBUM_ID_KEY = "album_id";
 
@@ -38,18 +41,24 @@ public class AlbumActivity extends AppCompatActivity implements View, SongsAdapt
         context.startActivity(intent);
     }
 
-    //@TODO: display scroll bar
-    //@TODO: recyclerview does not retur to its previous position on orientation change
-    //@TODO: layout for song does not fill the whole width of the screen (this gets noticed when you click in a item of the list)
-    private RecyclerView mRecyclerView;
-    private RecyclerView.LayoutManager mLayoutManager;
-    private SongsAdapter mAdapter;
-    private ImageView mAlbumCover;
-    private CollapsingToolbarLayout mToolbar;
+    private TextView mAlbumNameTextView;
+    private TextView mNumberOfFilesTextView;
+    private TextView mTotalFileSizeTextView;
+    private TextView mDateAddedTextView;
+    private TextView mPlatformsTextView;
+    private RecyclerView mSongsList;
 
     private LinearLayout mErrorView;
     private LinearLayout mLoadingView;
-    private CoordinatorLayout mContentView;
+    private ConstraintLayout mContentView;
+
+    private SongsAdapter mAdapter;
+
+    private AlbumViewState mCurrentState;
+
+    private MusicPlayerService mPlayer;
+
+    private KhinsiderRepository mRepo = new KhinsiderRepository(new JsoupHtmlDocumentReader());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,35 +81,28 @@ public class AlbumActivity extends AppCompatActivity implements View, SongsAdapt
             return;
         }
 
-        mRecyclerView = findViewById(R.id.rv_songs_list);
-        mLayoutManager = new LinearLayoutManager(this);
-        mAdapter = new SongsAdapter(this);
-
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setNestedScrollingEnabled(false);
+        mAlbumNameTextView = findViewById(R.id.tv_album_name);
+        mNumberOfFilesTextView = findViewById(R.id.tv_number_files);
+        mTotalFileSizeTextView = findViewById(R.id.tv_filesize);
+        mDateAddedTextView = findViewById(R.id.tv_date_added);
+        mPlatformsTextView = findViewById(R.id.tv_platforms);
+        mSongsList = findViewById(R.id.list_view);
 
         mErrorView = findViewById(R.id.error_view);
         mLoadingView = findViewById(R.id.loading_view);
-        mContentView = findViewById(R.id.cl_container);
-        mAlbumCover = findViewById(R.id.iv_album_cover);
-        mToolbar = findViewById(R.id.toolbar_layout);
+        mContentView = findViewById(R.id.content_view);
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        mAdapter = new SongsAdapter(this);
+        mSongsList.setLayoutManager(new LinearLayoutManager(this));
+        mSongsList.setAdapter(mAdapter);
+
+        render(AlbumViewState.makeLoadingState(id));
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("");
 
-        mToolbar.setTitle("");
-
-        ViewModelProviders.of(this).get(AlbumViewModel.class)
-                .getCurrentState(id).observe(this, new Observer<AlbumViewState>() {
-            @Override
-            public void onChanged(@Nullable AlbumViewState albumViewState) {
-                render(albumViewState);
-            }
-        });
-
+        Intent serviceIntent = new Intent(this, MusicPlayerService.class);
+        bindService(serviceIntent, mBindServiceListener, Context.BIND_AUTO_CREATE);
     }
 
     public void showLoading() {
@@ -115,37 +117,40 @@ public class AlbumActivity extends AppCompatActivity implements View, SongsAdapt
         mContentView.setVisibility(android.view.View.INVISIBLE);
     }
 
-    public void showResults(Album album) {
+    public void showResults() {
         mLoadingView.setVisibility(android.view.View.INVISIBLE);
         mErrorView.setVisibility(android.view.View.INVISIBLE);
         mContentView.setVisibility(android.view.View.VISIBLE);
 
-        String image = album.getCoverImage();
-        if (image != null) {
-            Picasso.get().load(image).into(mAlbumCover);
-        }
+        Album album = mCurrentState.getAlbum();
 
+        mAlbumNameTextView.setText(album.getName());
+        mNumberOfFilesTextView.setText(String.valueOf(album.getNumberOfFiles()));
+        mTotalFileSizeTextView.setText(album.getTotalFilesize());
+        mDateAddedTextView.setText(album.getDateAdded());
+        mPlatformsTextView.setText(album.getReleasedOn());
         mAdapter.swapData(album.getSongs());
-        mToolbar.setTitle(album.getName());
+        getSupportActionBar().setTitle(album.getName());
     }
 
     @Override
     public void render(State state) {
 
-        AlbumViewState currentState = (AlbumViewState) state;
+        mCurrentState = (AlbumViewState) state;
 
-        if (currentState.isLoading()) {
+        if (mCurrentState.isLoading()) {
             showLoading();
+            new LoadAlbumTask(this).execute(mCurrentState.getAlbumId());
             return;
         }
 
-        if (currentState.hasError()) {
+        if (mCurrentState.hasError()) {
             showError();
             return;
         }
 
-        if (currentState.getAlbum() != null) {
-            showResults(currentState.getAlbum());
+        if (mCurrentState.getAlbum() != null) {
+            showResults();
             return;
         }
 
@@ -154,8 +159,78 @@ public class AlbumActivity extends AppCompatActivity implements View, SongsAdapt
     }
 
     @Override
-    public void onSongClicker(Song song) {
-        //do something
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(mBindServiceListener);
+    }
+
+    private ServiceConnection mBindServiceListener = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mPlayer = ((MusicPlayerService.MusicPlayerBinder) service).getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
+
+    @SuppressLint("StaticFieldLeak")
+    private class PlayMusicTask extends AsyncTask<Void, Void, Void> {
+
+        private int mPosition;
+
+        private Song mSong;
+
+        PlayMusicTask(int position, Song song) {
+            mSong = song;
+            mPosition = position;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            try {
+
+                String mp3Url = mSong.getFiles().get(Format.MP3).getUrl();
+
+                if (mp3Url == null || mp3Url.isEmpty()) {
+                    mRepo.setMp3UrlOnSong(mSong);
+                }
+
+            } catch (IOException exception) {
+
+                exception.printStackTrace();
+
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+
+            mPlayer.startMusic(mSong);
+
+            mAdapter.setCurrentSong(mSong);
+
+        }
+
+    }
+
+    @Override
+    public void onSongClicked(int position, Song song) {
+
+        new PlayMusicTask(position, song).execute();
+
+    }
+
+    @Override
+    public void onSongLongClicked(int position, Song song) {
+
+        new DownloadSongTask(this, song).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
     }
 
 }
